@@ -5,7 +5,7 @@ require 'asterisk/ajam/version'
 
 Gem::Specification.new do |spec|
   spec.name          = "asterisk-ajam"
-  spec.version       = Asterisk::Ajam::VERSION
+  spec.version       = Asterisk::AJAM::VERSION
   spec.authors       = ["Stas Kobzar"]
   spec.email         = ["stas@modulis.ca"]
   spec.description   = %q{Ruby module for interacting with Asterisk management interface (AMI) via HTTP}

@@ -1,4 +1,4 @@
-# Asterisk::Ajam
+# Asterisk::AJAM
 
 TODO: Write a gem description
 
