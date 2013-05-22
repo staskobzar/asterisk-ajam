@@ -9,9 +9,17 @@ module Asterisk
     #
     
     # Session errors
+    # This class extends StandardError and raises when problem with
+    # AJAM URL found, for ex: missing scheme or hostname
+    # TODO: should be also used for HTTPS connections
     class InvalidURI < StandardError; end
+    # This class extends StandardError and raises when problems
+    # with loggin AJAM server found or when missing importent
+    # parameters like username or password.
     class InvalidAMILogin < StandardError; end
 
+    # This class establish connection to AJAM server using TCP connection
+    # and HTTP protocol. 
     class Session
 
       # Asterisk AJAM server host or IP
@@ -30,7 +38,7 @@ module Asterisk
       # Create new Asterisk AJAM session without initializing 
       # TCP network connection
       def initialize(options={})
-        @host          = options[:host] unless options[:host].nil?
+        @host          = options[:host]
         @port          = options[:port] || 8088
         @ami_user      = options[:ami_user]
         @ami_password  = options[:ami_password]
@@ -38,7 +46,6 @@ module Asterisk
 
       # AJAM server URI
       def uri
-        raise InvalidURI, "Host not set" if host.nil?
         URI::Generic.new 'http', # scheme
                    nil,   # userinfo
                    host,
@@ -53,9 +60,9 @@ module Asterisk
       # login action. Also stores session identificator for 
       # sending many actions within same session
       def login
-        raise InvalidAMILogin, "Missing AMI username" if @ami_user.nil?
-        raise InvalidAMILogin, "Missing AMI user pass" if @ami_password.nil?
-
+        ami_user_valid?
+        ami_pass_valid?
+        
       end
 
       # send action to Asterisk AJAM server
@@ -88,12 +95,22 @@ module Asterisk
 
         # TODO: set cookies jar
         def set_cookies(header)
-          @cookies = 'TODO'
+          @cookies = header # TODO
         end
 
         # TODO: check if session is valid
         def valid?
-          !@cookies.nil?
+          !@cookies.to_s.empty?
+        end
+
+        def ami_user_valid?
+          raise InvalidAMILogin, 
+            "Missing AMI username" if @ami_user.to_s.empty?
+        end
+
+        def ami_pass_valid?
+          raise InvalidAMILogin, 
+            "Missing AMI user pass" if @ami_password.to_s.empty?
         end
     end
   end

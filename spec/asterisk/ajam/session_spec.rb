@@ -18,10 +18,13 @@ module Asterisk
 
       describe "#uri" do
         specify { subject.uri.should be_a_kind_of(URI) }
-        it "raises InvalidURI if host is nil" do
-          subject.host = nil
-          expect{subject.uri}.to raise_error(InvalidURI)
-        end
+
+        # TODO: verification should be made befor http_send_action 
+        # it "raises InvalidURI if host is nil" do
+        #   subject.host = nil
+        #   expect{subject.uri}.to raise_error(InvalidURI)
+        # end
+
         it "returns valid AJAM URI if all conditions met" do
           subject.uri.to_s.should eql('http://ajam.asterisk.com:8088/mxml')
         end
@@ -39,8 +42,16 @@ module Asterisk
       end
 
       describe "#login" do
-        it "raises InvalidAMILogin if empty username or password" do
+        it "raises InvalidAMILogin if empty AMI username" do
           subject.ami_user = nil
+          subject.ami_password = "aaaaaaaa"
+          expect{
+            subject.login
+          }.to raise_error(InvalidAMILogin)
+        end
+
+        it "raises InvalidAMILogin if empty AMI password" do
+          subject.ami_user = "aaaaaaa"
           subject.ami_password = nil
           expect{
             subject.login
