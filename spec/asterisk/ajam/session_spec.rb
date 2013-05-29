@@ -54,10 +54,6 @@ module Asterisk
           }.to raise_error(InvalidAMILogin)
         end
 
-        it "must login" do
-          subject.host = "127.0.0.1"
-          subject.login
-        end
       end
 
       describe "action methods" do
