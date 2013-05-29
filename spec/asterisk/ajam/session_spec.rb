@@ -14,20 +14,8 @@ module Asterisk
       before(:each) do
         subject.host = options[:host]
         subject.port = options[:port]
-      end
-
-      describe "#uri" do
-        specify { subject.uri.should be_a_kind_of(URI) }
-
-        # TODO: verification should be made befor http_send_action 
-        # it "raises InvalidURI if host is nil" do
-        #   subject.host = nil
-        #   expect{subject.uri}.to raise_error(InvalidURI)
-        # end
-
-        it "returns valid AJAM URI if all conditions met" do
-          subject.uri.to_s.should eql('http://ajam.asterisk.com:8088/mxml')
-        end
+        subject.ami_user = 'admin'
+        subject.ami_password = 'passw0rd'
       end
 
       describe "#path" do
@@ -41,53 +29,50 @@ module Asterisk
         end
       end
 
+      describe "#scheme" do
+        it "default value is http" do
+          subject.scheme.should == 'http'
+        end
+        it "set scheme" do
+          subject.scheme = 'https'
+          subject.scheme.should == 'https'
+        end
+      end
+
       describe "#login" do
         it "raises InvalidAMILogin if empty AMI username" do
           subject.ami_user = nil
-          subject.ami_password = "aaaaaaaa"
           expect{
             subject.login
           }.to raise_error(InvalidAMILogin)
         end
 
         it "raises InvalidAMILogin if empty AMI password" do
-          subject.ami_user = "aaaaaaa"
           subject.ami_password = nil
           expect{
             subject.login
           }.to raise_error(InvalidAMILogin)
         end
 
-        it "stores session cookies for multiple actions within single session" do
-          pending
+        it "must login" do
+          subject.host = "127.0.0.1"
+          subject.login
         end
       end
 
-      describe "#send_action" do
-        before(:each, :loggedin => true) do
-          subject.stub(:valid?).and_return(true)
+      describe "action methods" do
+        before(:each) {subject.stub(:connected?).and_return(true)}
+        it "when call action without parameters then expects send_action with action name" do
+          subject.should_receive(:send_action).once.with(:sippeers)
+          subject.action_sippeers
         end
 
-        it "raises InvalidAMILogin if not logged in" do
-          expect{
-            subject.send_action :login, username: 'admin', secret: 'passw0rd'
-          }.to raise_error(InvalidAMILogin)
+        it "when call action with parameters then expects send_action with hash" do
+          params = Hash[family: 'user', key: 'extension', val: '5555']
+          subject.should_receive(:send_action).with(:dbput, params)
+          subject.action_dbput params
         end
-
-        it "prepares action URI path for the action", :loggedin => true do
-          subject.stub(:http_send_action).and_return(true)
-          subject.send_action :login, username: 'admin', secret: 'passw0rd'
-          subject.uri.query.should eql('action=login&username=admin&secret=passw0rd')
-        end
-
-        it "uses http_send_action to connect and write to server", :loggedin => true do
-          subject.stub(:http_send_action).once
-          subject.send_action :login, username: 'admin', secret: 'passw0rd'
-        end
-
-        it "returns Response instance", :loggedin => true do
-          pending
-        end
+        
       end
 
     end

@@ -1,3 +1,4 @@
+require 'net/http'
 #
 # = asterisk/ajam/session.rb
 #
@@ -18,6 +19,10 @@ module Asterisk
     # parameters like username or password.
     class InvalidAMILogin < StandardError; end
 
+    # Class extends StandardError and is raised when trying to
+    # send command to not AJAM server where not logged in
+    class NotLoggedIn < StandardError; end
+
     # This class establish connection to AJAM server using TCP connection
     # and HTTP protocol. 
     class Session
@@ -34,27 +39,13 @@ module Asterisk
       # AMI password
       attr_accessor :ami_password
 
-      #
       # Create new Asterisk AJAM session without initializing 
       # TCP network connection
       def initialize(options={})
-        @host          = options[:host]
-        @port          = options[:port] || 8088
-        @ami_user      = options[:ami_user]
-        @ami_password  = options[:ami_password]
-      end
-
-      # AJAM server URI
-      def uri
-        URI::Generic.new 'http', # scheme
-                   nil,   # userinfo
-                   host,
-                   port,
-                   nil,   # registry
-                   path,
-                   nil,   # opaque
-                   query, # query
-                   nil    # fragment
+        @host           = options[:host]
+        @port           = options[:port] || 8088
+        @ami_user       = options[:ami_user]
+        @ami_password   = options[:ami_password]
       end
 
       # login action. Also stores session identificator for 
@@ -62,14 +53,8 @@ module Asterisk
       def login
         ami_user_valid?
         ami_pass_valid?
-        
-      end
-
-      # send action to Asterisk AJAM server
-      def send_action(action, params={})
-        raise InvalidAMILogin, "Not logged in" unless valid?
-        set_query Hash[action: action].merge params
-        http_send_action uri
+        send_action :login, username: @ami_user, secret: @ami_password
+        #set_cookies response["Set-Cookie"]
       end
 
       # get or set default XML Manager Event Interface URI path
@@ -82,7 +67,40 @@ module Asterisk
         @path = path
       end
 
+      # AJAM URI scheme setter
+      def scheme=(scheme)
+        @scheme = scheme
+      end
+
+      # AJAM URI scheme getter (default: http)
+      def scheme
+        @scheme ||= 'http'
+      end
+
       private
+        # handling action_ methods
+        def method_missing(method, *args)
+          method = method.id2name
+          raise NoMethodError,
+            "Undefined method #{method}" unless /^action_\w+$/.match(method)
+          raise NotLoggedIn, "Not logged in" unless connected?
+          send_action method.sub(/^action_/,'').to_sym, *args
+        end
+
+        # send action to Asterisk AJAM server
+        def send_action(action, params={})
+          set_query Hash[action: action].merge params
+          http_send_action
+        end
+
+        # Send HTTP request to AJAM server using "#uri"
+        def http_send_action
+          Net::HTTP.start(host, port) do |http|
+            req  = Net::HTTP::Get.new uri.request_uri
+            Response.new http.request req
+          end
+        end
+
         # AJAM URI query segment
         def query
           @query
@@ -93,25 +111,31 @@ module Asterisk
           @query = URI.encode_www_form params
         end
 
-        # TODO: set cookies jar
-        def set_cookies(header)
-          @cookies = header # TODO
+        # set cookies jar
+        def set_cookies(cookies)
+          @cookies = cookies # TODO
         end
 
-        # TODO: check if session is valid
-        def valid?
-          !@cookies.to_s.empty?
-        end
-
+        # verifies if AMI username is set and not empty
         def ami_user_valid?
-          raise InvalidAMILogin, 
+          raise InvalidAMILogin,
             "Missing AMI username" if @ami_user.to_s.empty?
         end
 
+        # verifies if AMI password (secret) is set and not empty
         def ami_pass_valid?
-          raise InvalidAMILogin, 
+          raise InvalidAMILogin,
             "Missing AMI user pass" if @ami_password.to_s.empty?
         end
+
+        # AJAM server URI
+        def uri
+          URI::HTTP.build host: host,  # AJAM server host
+            port: port,  # AJAM port (default 8088)
+            path: path,  # AMI uri path segment
+            query: query # query
+        end
+
     end
   end
 end
