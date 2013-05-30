@@ -53,8 +53,9 @@ module Asterisk
       def login
         ami_user_valid?
         ami_pass_valid?
-        send_action :login, username: @ami_user, secret: @ami_password
-        #set_cookies response["Set-Cookie"]
+        response = send_action :login, username: @ami_user, secret: @ami_password
+        set_session_id response.session_id
+        response
       end
 
       # get or set default XML Manager Event Interface URI path
@@ -96,7 +97,7 @@ module Asterisk
         # Send HTTP request to AJAM server using "#uri"
         def http_send_action
           Net::HTTP.start(host, port) do |http|
-            req  = Net::HTTP::Get.new uri.request_uri
+            req  = Net::HTTP::Get.new uri.request_uri, request_headers
             Response.new http.request req
           end
         end
@@ -111,9 +112,9 @@ module Asterisk
           @query = URI.encode_www_form params
         end
 
-        # set cookies jar
-        def set_cookies(cookies)
-          @cookies = cookies # TODO
+        # set AJAM session id
+        def set_session_id(sid)
+          @session_id = sid
         end
 
         # verifies if AMI username is set and not empty
@@ -136,6 +137,12 @@ module Asterisk
             query: query # query
         end
 
+        # initialize request headers for Net::HTTPRequest class
+        def request_headers
+          Hash[
+            'Set-Cookie' => %Q!mansession_id="#{@session_id}"!
+          ]
+        end
     end
   end
 end

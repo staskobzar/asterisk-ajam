@@ -18,6 +18,9 @@ module Asterisk
       # HTTP response code
       attr_reader :code
 
+      # AJAM session id
+      attr_reader :session_id
+
       # Creates new Response class instance. Sets instance 
       # variables from HTTP Response (like code). Parses body.
       def initialize(http)
@@ -27,6 +30,7 @@ module Asterisk
         @code = http.code
         return unless httpok?
         parse_body http.body
+        set_session_id http
       end
 
       # HTTP request status
@@ -47,17 +51,14 @@ module Asterisk
           set_nodes xml
           verify_response
           set_eventlist
-          #nodes.each {|n| pp n.class;pp n.attributes.to_h}
         end
 
         # parse xml body and set result to internal variable for farther processing
         def set_nodes xml
-          raise ArgumentError,
+          raise InvalidHTTPBody,
             "Empty response body" if xml.to_s.empty?
           src = LibXML::XML::Parser.string(xml).parse
           @nodes = src.root.find('response/generic').to_a
-          raise ArgumentError,
-            "Invalid response body structure" if @nodes.empty?
         end
 
         # 
@@ -71,6 +72,13 @@ module Asterisk
 
           attributes.delete :response
           @response = attributes
+        end
+
+        # extract mansession_id from cookies
+        def set_session_id(http)
+          if /mansession_id=(['"])([^\1]+)\1/ =~ http['Set-Cookie']
+            @session_id = $2
+          end
         end
 
         # for reponses that contain eventlist of values set it to 

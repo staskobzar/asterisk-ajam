@@ -23,6 +23,30 @@ module Asterisk
             Response.new nil
           }.to raise_error(ArgumentError)
         end
+
+        it "raises error if empty response body" do
+          http = get_simple_httpok
+          http.stub(:body => '')
+          expect{
+            Response.new http
+          }.to raise_error(InvalidHTTPBody)
+        end
+
+        it "raises error if invalid xml response body" do
+          http = get_simple_httpok
+          http.stub(:body => '<a>this is not xml')
+          expect{
+            Response.new http
+          }.to raise_error(LibXML::XML::Error)
+        end
+
+        it "set session id" do
+          sid = "df901b5f"
+          res = res_login_ok
+          res.stub(:[]).with('Set-Cookie').and_return(%Q[mansession_id="#{sid}"; Version=1; Max-Age=60])
+          response = Response.new res
+          response.session_id.should eql(sid)
+        end
       end
 
       #httpok?

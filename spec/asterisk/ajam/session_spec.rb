@@ -54,6 +54,15 @@ module Asterisk
           }.to raise_error(InvalidAMILogin)
         end
 
+        it "should return response class with 'success' method true on success" do
+          http = get_simple_httpok
+          http.stub(:body => get_body_failed_login)
+          Net::HTTP.stub(:start).and_yield(double('Net::HTTP', :request => http))
+          Net::HTTP::Get.stub(:new).and_return(nil)
+          response = subject.login
+          response.should be_kind_of Response
+        end
+
       end
 
       describe "action methods" do
