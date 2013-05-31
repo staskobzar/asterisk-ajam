@@ -6,7 +6,7 @@ require 'libxml'
 module Asterisk
   module AJAM
     # Exception raised when HTTP response body is invalid
-    class InvalidHTTPBody < StandardError;end
+    class InvalidHTTPBody < StandardError;end #:nodoc:
 
     #
     # Generic class to process and store responses from 
@@ -75,7 +75,6 @@ module Asterisk
         # Check if AJAM response is successfull and set internal variable
         # @success
         def verify_response
-          @success = false
           node = @nodes.shift
           @success = ['success', 'follows'].include? node[:response].to_s.downcase
           @attribute = node.attributes.to_h

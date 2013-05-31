@@ -13,15 +13,16 @@ module Asterisk
     # This class extends StandardError and raises when problem with
     # AJAM URL found, for ex: missing scheme or hostname
     # TODO: should be also used for HTTPS connections
-    class InvalidURI < StandardError; end
+    class InvalidURI < StandardError; end #:nodoc:
+
     # This class extends StandardError and raises when problems
     # with loggin AJAM server found or when missing importent
     # parameters like username or password.
-    class InvalidAMILogin < StandardError; end
+    class InvalidAMILogin < StandardError; end #:nodoc:
 
     # Class extends StandardError and is raised when trying to
     # send command to not AJAM server where not logged in
-    class NotLoggedIn < StandardError; end
+    class NotLoggedIn < StandardError; end #:nodoc:
 
     # This class establish connection to AJAM server using TCP connection
     # and HTTP protocol. 
