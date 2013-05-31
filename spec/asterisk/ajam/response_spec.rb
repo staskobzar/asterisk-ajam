@@ -73,6 +73,31 @@ module Asterisk
         end
       end
 
+      describe "actions" do
+        it "set recieved response list to class attributes" do
+          http = get_simple_httpok
+          http.stub(:body => get_body_sippeers)
+          res = Response.new http
+          res.list.first.should include('event' => 'PeerEntry', 'objectname' => '5555')
+          res.list.last.should include('objectname' => '8903')
+        end
+
+        it "when response has single result then it stored in :response" do
+          http = get_simple_httpok
+          http.stub(:body => get_body_corestatus)
+          res = Response.new http
+          res.attribute['corestartuptime'].should eql('17:13:00')
+        end
+      end
+
+      describe "#command" do
+        it "set data variable with response from AJAM" do
+          http = get_simple_httpok
+          http.stub(:body => cmd_body_dialplan_reload)
+          res = Response.new http
+          res.data.should match(/Dialplan reloaded/)
+        end
+      end
     end
   end
 end

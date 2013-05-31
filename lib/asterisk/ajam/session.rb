@@ -58,6 +58,11 @@ module Asterisk
         response
       end
 
+      # send AMI command
+      def command(command)
+        action_command command: command
+      end
+
       # get or set default XML Manager Event Interface URI path
       def path
         @path ||= '/mxml'
@@ -78,6 +83,10 @@ module Asterisk
         @scheme ||= 'http'
       end
 
+      # Verify if session esteblished connection and set session id
+      def connected?
+        /^[0-9a-z]{8}$/.match(@session_id).is_a? MatchData
+      end
       private
         # handling action_ methods
         def method_missing(method, *args)

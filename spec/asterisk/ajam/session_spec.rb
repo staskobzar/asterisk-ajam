@@ -10,12 +10,21 @@ module Asterisk
         ]
       end
       let(:session){Session.new}
+      let(:manses_id){"84d22b60"}
       subject { session }
       before(:each) do
         subject.host = options[:host]
         subject.port = options[:port]
         subject.ami_user = 'admin'
         subject.ami_password = 'passw0rd'
+      end
+
+      before(:each, :mock_login => true) do
+        http = get_simple_httpok
+        http.stub(:body => get_body_failed_login)
+        http.stub(:[]).and_return(%Q|mansession_id="#{manses_id}"; Version=1; Max-Age=60|)
+        Net::HTTP.stub(:start).and_yield(double('Net::HTTP', :request => http))
+        Net::HTTP::Get.stub(:new).and_return(nil)
       end
 
       describe "#path" do
@@ -54,15 +63,23 @@ module Asterisk
           }.to raise_error(InvalidAMILogin)
         end
 
-        it "should return response class with 'success' method true on success" do
-          http = get_simple_httpok
-          http.stub(:body => get_body_failed_login)
-          Net::HTTP.stub(:start).and_yield(double('Net::HTTP', :request => http))
-          Net::HTTP::Get.stub(:new).and_return(nil)
+        it "should return response class with 'success' method true on success", :mock_login => true do
           response = subject.login
           response.should be_kind_of Response
         end
 
+        it "must set session id", :mock_login => true do
+          subject.should_receive(:set_session_id).with(manses_id)
+          subject.login
+        end
+
+      end
+
+      describe "#connected?" do
+        it "returns true when successfuly logged in", :mock_login => true do
+          subject.login
+          subject.should be_connected
+        end
       end
 
       describe "action methods" do
@@ -77,7 +94,24 @@ module Asterisk
           subject.should_receive(:send_action).with(:dbput, params)
           subject.action_dbput params
         end
-        
+
+        it "uses cookies when sending action", :mock_login => true do
+          Net::HTTP::Get.should_receive(:new).with(anything(),hash_including("Set-Cookie"=>%Q!mansession_id="#{manses_id}"!))
+          subject.login
+          subject.action_corestatus
+        end
+      end
+
+      describe "#command" do
+        before(:each) {subject.stub(:connected?).and_return(true)}
+        it "sends command to action method" do
+          http = get_simple_httpok
+          http.stub(:body => cmd_body_sip_show_peers)
+          Net::HTTP.stub(:start).and_yield(double('Net::HTTP', :request => http))
+          Net::HTTP::Get.stub(:new).and_return(nil)
+          res = subject.command 'sip show peers'
+          res.data.should match(/88888\s+\(Unspecified\)/)
+        end
       end
 
     end

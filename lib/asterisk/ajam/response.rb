@@ -21,12 +21,22 @@ module Asterisk
       # AJAM session id
       attr_reader :session_id
 
+      # Response eventlist from action (for example: sip peers)
+      attr_reader :list
+
+      # Response attributes
+      attr_reader :attribute
+
+      # opaque_data from command response
+      attr_reader :data
+
       # Creates new Response class instance. Sets instance 
       # variables from HTTP Response (like code). Parses body.
       def initialize(http)
         raise ArgumentError,
           "Expected Net::HTTP::Response. Got #{http.class}" unless http.is_a?(Net::HTTPResponse)
-        @attributes = Array[]
+        @attribute = []
+        @list = []
         @code = http.code
         return unless httpok?
         parse_body http.body
@@ -66,12 +76,11 @@ module Asterisk
         # @success
         def verify_response
           @success = false
-          node = @nodes.first
-          @success = node[:response].to_s.downcase.eql? 'success'
-          attributes = node.attributes.to_h
+          node = @nodes.shift
+          @success = ['success', 'follows'].include? node[:response].to_s.downcase
+          @attribute = node.attributes.to_h
 
-          attributes.delete :response
-          @response = attributes
+          set_command_data
         end
 
         # extract mansession_id from cookies
@@ -84,8 +93,18 @@ module Asterisk
         # for reponses that contain eventlist of values set it to 
         # internal attributes
         def set_eventlist
-          return unless @response[:eventlist].eql? 'start'
+          return unless @attribute['eventlist'].to_s.downcase.eql? 'start'
+          @nodes.each do |node|
+            next if node['eventlist'].eql? 'Complete'
+            @list << node.attributes.to_h
+          end
+        end
 
+        def set_command_data
+          if @attribute.has_key?('opaque_data')
+            @data = @attribute['opaque_data']
+            @attribute.delete 'opaque_data'
+          end
         end
 
     end

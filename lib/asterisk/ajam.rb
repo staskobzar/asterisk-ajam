@@ -5,9 +5,8 @@ require 'asterisk/ajam/response'
 module Asterisk
 
   module AJAM
-    def self.connect(host, port, ami_user, ami_password)
-      sess = Session.new host: host, port: port, ami_user: ami_user, ami_password: ami_password
-      sess.login
+    def self.connect(options)
+      Session.new(options).login
     end
   end
 end

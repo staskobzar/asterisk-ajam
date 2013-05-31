@@ -49,3 +49,35 @@ def get_body_sippeers
 </ajax-response>
   }
 end
+
+def get_body_corestatus
+  %q{<ajax-response>
+<response type='object' id='unknown'><generic response='Success' corestartupdate='2013-05-25' corestartuptime='17:13:00' corereloaddate='2013-05-25' corereloadtime='17:13:00' corecurrentcalls='0' /></response>
+</ajax-response>
+  }
+end
+
+def cmd_body_dialplan_reload
+  %q{<ajax-response>
+<response type='object' id='unknown'><generic response='Follows' privilege='Command' opaque_data='Dialplan reloaded.
+--END COMMAND--' /></response>
+</ajax-response>
+  }
+end
+
+def cmd_body_sip_show_peers
+  %q{<ajax-response>
+<response type='object' id='unknown'><generic response='Follows' privilege='Command' opaque_data='Name/username              Host                                    Dyn Forcerport ACL Port     Status
+5555                       (Unspecified)                            D              A  0        UNKNOWN
+8734                       (Unspecified)                            D   N          A  0        UNKNOWN
+8801                       (Unspecified)                            D   N          A  0        UNKNOWN
+8803                       (Unspecified)                            D   N          A  0        UNKNOWN
+88888                      (Unspecified)                            D   N          A  0        UNKNOWN
+8901                       (Unspecified)                            D   N          A  0        UNKNOWN
+8902                       (Unspecified)                            D   N          A  0        UNKNOWN
+8903                       (Unspecified)                            D   N          A  0        UNKNOWN
+8 sip peers [Monitored: 0 online, 8 offline Unmonitored: 0 online, 0 offline]
+--END COMMAND--' /></response>
+</ajax-response>
+  }
+end
