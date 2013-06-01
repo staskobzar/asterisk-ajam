@@ -2,10 +2,13 @@
 require 'asterisk/ajam'
 require 'pp'
 ajam = Asterisk::AJAM.connect :host => '127.0.0.1',
+                              :port => 8088,
                               :ami_user => 'admin',
-                              :ami_password => 'amp111'
+                              :ami_password => 'amp111',
+                              :proxy_user => 'admin',
+                              :proxy_pass => 'admin'
 
-
+pp ajam.connected?
 # actions
 res = ajam.action_sippeers
 pp res.list

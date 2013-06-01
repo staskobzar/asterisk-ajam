@@ -40,6 +40,12 @@ module Asterisk
       # AMI password
       attr_accessor :ami_password
 
+      # http access user
+      attr_accessor :proxy_user
+
+      # http access password
+      attr_accessor :proxy_pass
+
       # Create new Asterisk AJAM session without initializing 
       # TCP network connection
       def initialize(options={})
@@ -47,6 +53,8 @@ module Asterisk
         @port           = options[:port] || 8088
         @ami_user       = options[:ami_user]
         @ami_password   = options[:ami_password]
+        @proxy_pass     = options[:proxy_pass]
+        @proxy_user     = options[:proxy_user]
       end
 
       # login action. Also stores session identificator for 
@@ -107,6 +115,7 @@ module Asterisk
         def http_send_action
           Net::HTTP.start(host, port) do |http|
             req  = Net::HTTP::Get.new uri.request_uri, request_headers
+            req.basic_auth @proxy_user, @proxy_pass if @proxy_pass && @proxy_user
             Response.new http.request req
           end
         end
@@ -138,7 +147,9 @@ module Asterisk
           URI::HTTP.build host: host,  # AJAM server host
             port: port,  # AJAM port (default 8088)
             path: path,  # AMI uri path segment
-            query: query # query
+            query: query, # query
+            password: @proxy_pass,
+            user: @proxy_user
         end
 
         # initialize request headers for Net::HTTPRequest class
