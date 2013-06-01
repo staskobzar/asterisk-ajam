@@ -54,9 +54,8 @@ module Asterisk
       def login
         ami_user_valid?
         ami_pass_valid?
-        response = send_action :login, username: @ami_user, secret: @ami_password
-        set_session_id response.session_id
-        response
+        send_action :login, username: @ami_user, secret: @ami_password
+        self
       end
 
       # send AMI command
@@ -86,7 +85,7 @@ module Asterisk
 
       # Verify if session esteblished connection and set session id
       def connected?
-        /^[0-9a-z]{8}$/.match(@session_id).is_a? MatchData
+        /^[0-9a-z]{8}$/.match(@response.session_id).is_a? MatchData
       end
       private
         # handling action_ methods
@@ -101,7 +100,7 @@ module Asterisk
         # send action to Asterisk AJAM server
         def send_action(action, params={})
           set_query Hash[action: action].merge params
-          http_send_action
+          @response = http_send_action
         end
 
         # Send HTTP request to AJAM server using "#uri"
@@ -120,11 +119,6 @@ module Asterisk
         # set AJAM URI query segment
         def set_query(params)
           @query = URI.encode_www_form params
-        end
-
-        # set AJAM session id
-        def set_session_id(sid)
-          @session_id = sid
         end
 
         # verifies if AMI username is set and not empty
@@ -149,8 +143,9 @@ module Asterisk
 
         # initialize request headers for Net::HTTPRequest class
         def request_headers
+          return nil unless @response
           Hash[
-            'Set-Cookie' => %Q!mansession_id="#{@session_id}"!
+            'Cookie' => %Q!mansession_id="#{@response.session_id}"!
           ]
         end
     end

@@ -63,14 +63,9 @@ module Asterisk
           }.to raise_error(InvalidAMILogin)
         end
 
-        it "should return response class with 'success' method true on success", :mock_login => true do
+        it "should return Session class with 'success' method true on success", :mock_login => true do
           response = subject.login
-          response.should be_kind_of Response
-        end
-
-        it "must set session id", :mock_login => true do
-          subject.should_receive(:set_session_id).with(manses_id)
-          subject.login
+          response.should be_kind_of Session
         end
 
       end
@@ -96,7 +91,7 @@ module Asterisk
         end
 
         it "uses cookies when sending action", :mock_login => true do
-          Net::HTTP::Get.should_receive(:new).with(anything(),hash_including("Set-Cookie"=>%Q!mansession_id="#{manses_id}"!))
+          Net::HTTP::Get.should_receive(:new).with(anything(),hash_including("Cookie"=>%Q!mansession_id="#{manses_id}"!))
           subject.login
           subject.action_corestatus
         end

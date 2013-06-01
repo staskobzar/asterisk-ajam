@@ -27,9 +27,6 @@ module Asterisk
       # Response attributes
       attr_reader :attribute
 
-      # opaque_data from command response
-      attr_reader :data
-
       # Creates new Response class instance. Sets instance 
       # variables from HTTP Response (like code). Parses body.
       def initialize(http)
@@ -37,7 +34,7 @@ module Asterisk
           "Expected Net::HTTP::Response. Got #{http.class}" unless http.is_a?(Net::HTTPResponse)
         @attribute = []
         @list = []
-        @code = http.code
+        @code = http.code.to_i
         return unless httpok?
         parse_body http.body
         set_session_id http
@@ -51,6 +48,11 @@ module Asterisk
       # Is AJAM action/command successful
       def success?
         @success
+      end
+
+      # opaque_data from command response
+      def data
+        @data || @nodes
       end
 
       private
