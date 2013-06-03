@@ -107,27 +107,28 @@ module Asterisk
 
         # send action to Asterisk AJAM server
         def send_action(action, params={})
-          set_query Hash[action: action].merge params
+          set_params Hash[action: action].merge params
           @response = http_send_action
         end
 
         # Send HTTP request to AJAM server using "#uri"
         def http_send_action
           Net::HTTP.start(host, port) do |http|
-            req  = Net::HTTP::Get.new uri.request_uri, request_headers
+            req  = Net::HTTP::Post.new uri.request_uri, request_headers
+            req.set_form_data params
             req.basic_auth @proxy_user, @proxy_pass if @proxy_pass && @proxy_user
             Response.new http.request req
           end
         end
 
-        # AJAM URI query segment
-        def query
-          @query
+        # Post parameters
+        def params
+          @params
         end
 
-        # set AJAM URI query segment
-        def set_query(params)
-          @query = URI.encode_www_form params
+        # set AJAM POST parameters
+        def set_params(params)
+          @params = params #URI.encode_www_form params
         end
 
         # verifies if AMI username is set and not empty
@@ -147,7 +148,6 @@ module Asterisk
           URI::HTTP.build host: host,  # AJAM server host
             port: port,  # AJAM port (default 8088)
             path: path,  # AMI uri path segment
-            query: query, # query
             password: @proxy_pass,
             user: @proxy_user
         end
