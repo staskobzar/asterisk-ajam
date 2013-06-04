@@ -28,11 +28,9 @@ module Asterisk
     # and HTTP protocol. 
     class Session
 
-      # Asterisk AJAM server host or IP
-      attr_accessor :host
-
-      # Asterisk AJAM server port (default port is 8088)
-      attr_accessor :port
+      # Asterisk AJAM server URI
+      # URI class instance
+      attr_accessor :uri
 
       # AMI user name
       attr_accessor :ami_user
@@ -49,8 +47,7 @@ module Asterisk
       # Create new Asterisk AJAM session without initializing 
       # TCP network connection
       def initialize(options={})
-        @host           = options[:host]
-        @port           = options[:port] || 8088
+        self.uri        = options[:uri]
         @ami_user       = options[:ami_user]
         @ami_password   = options[:ami_password]
         @proxy_pass     = options[:proxy_pass]
@@ -163,6 +160,17 @@ module Asterisk
             path: path,  # AMI uri path segment
             password: @proxy_pass,
             user: @proxy_user
+        end
+
+        # setup AJAM URI
+        def uri=(uri)
+          pp uri
+          pp URI.parse(uri)
+          @uri = URI.parse uri
+          raise InvalidURI,
+            "No AJAM URI given" unless @uri
+          raise InvalidURI,
+            "Unsupported protocol #{@uri.scheme}" unless %w/http https/.include? @uri.scheme
         end
 
         # initialize request headers for Net::HTTPRequest class

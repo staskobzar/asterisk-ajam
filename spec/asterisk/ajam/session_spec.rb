@@ -3,21 +3,8 @@ require 'spec_helper'
 module Asterisk
   module AJAM
     describe Session do
-      let(:options) do
-        Hash[
-          host:     'ajam.asterisk.com',
-          port:     8088,
-        ]
-      end
-      let(:session){Session.new}
+      let(:uri_http){'http://ajam.asterisk.com:8088/mxml'}
       let(:manses_id){"84d22b60"}
-      subject { session }
-      before(:each) do
-        subject.host = options[:host]
-        subject.port = options[:port]
-        subject.ami_user = 'admin'
-        subject.ami_password = 'passw0rd'
-      end
 
       before(:each, :mock_login => true) do
         http = get_simple_httpok
@@ -28,6 +15,26 @@ module Asterisk
         http.stub(:request => http)
         Net::HTTP.stub(:new => http)
         Net::HTTP::Post.stub(:new).and_return(double('Net::HTTP::Post', :set_form_data => true))
+      end
+
+      describe "#new" do
+        it "set ajam uri" do
+          URI.should_receive(:parse).with(uri_http)
+          Session.new uri: uri_http
+        end
+
+        it "raises error if URI missing " do
+          expect{
+            Session.new
+          }.to raise_error(InvalidURI, 'No AJAM URI given')
+        end
+
+        it "raises error if scheme is not http or https" do
+          uri = "ftp://host:port/path"
+          expect{
+            Session.new uri: uri
+          }.to raise_error(InvalidURI)
+        end
       end
 
       describe "#path" do
