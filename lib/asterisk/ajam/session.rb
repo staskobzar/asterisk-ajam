@@ -118,14 +118,14 @@ module Asterisk
 
         # create new Net::HTTP instance
         def http_inst
-          http = Net::HTTP.new(host, port)
-          http.use_ssl = @use_ssl
+          http = Net::HTTP.new(@uri.host, @uri.port)
+          http.use_ssl = @uri.scheme.downcase.eql? 'https'
           http
         end
 
         # create new Net::HTTP::Post instance
         def http_post
-          req  = Net::HTTP::Post.new uri.request_uri, request_headers
+          req  = Net::HTTP::Post.new @uri.request_uri, request_headers
           req.set_form_data params
           req.basic_auth @proxy_user, @proxy_pass if @proxy_pass && @proxy_user
           req
@@ -153,19 +153,8 @@ module Asterisk
             "Missing AMI user pass" if @ami_password.to_s.empty?
         end
 
-        # AJAM server URI
-        def uri
-          URI::HTTP.build host: host,  # AJAM server host
-            port: port,  # AJAM port (default 8088)
-            path: path,  # AMI uri path segment
-            password: @proxy_pass,
-            user: @proxy_user
-        end
-
         # setup AJAM URI
         def uri=(uri)
-          pp uri
-          pp URI.parse(uri)
           @uri = URI.parse uri
           raise InvalidURI,
             "No AJAM URI given" unless @uri

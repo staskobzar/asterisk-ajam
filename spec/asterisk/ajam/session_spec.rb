@@ -18,7 +18,8 @@ module Asterisk
       end
 
       describe "#new" do
-        it "set ajam uri" do
+        it "set AJAM uri" do
+          URI.stub(:parse => URI(uri_http))
           URI.should_receive(:parse).with(uri_http)
           Session.new uri: uri_http
         end
@@ -26,11 +27,11 @@ module Asterisk
         it "raises error if URI missing " do
           expect{
             Session.new
-          }.to raise_error(InvalidURI, 'No AJAM URI given')
+          }.to raise_error(URI::InvalidURIError)
         end
 
         it "raises error if scheme is not http or https" do
-          uri = "ftp://host:port/path"
+          uri = "ftp://127.0.0.1/path"
           expect{
             Session.new uri: uri
           }.to raise_error(InvalidURI)
