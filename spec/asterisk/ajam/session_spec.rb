@@ -24,7 +24,9 @@ module Asterisk
         http.stub(:body => get_body_success_login)
         http.stub(:[]).and_return(%Q|mansession_id="#{manses_id}"; Version=1; Max-Age=60|)
         http.stub(:set_form_data).with(anything())
-        Net::HTTP.stub(:start).and_yield(double('Net::HTTP', :request => http))
+        http.stub(:use_ssl=)
+        http.stub(:request => http)
+        Net::HTTP.stub(:new => http)
         Net::HTTP::Post.stub(:new).and_return(double('Net::HTTP::Post', :set_form_data => true))
       end
 
@@ -64,7 +66,7 @@ module Asterisk
           }.to raise_error(InvalidAMILogin)
         end
 
-        it "should return Session class with 'success' method true on success", :mock_login => true do
+        it "should return Session class instance on success" , :mock_login => true do
           response = subject.login
           response.should be_kind_of Session
         end
@@ -103,7 +105,11 @@ module Asterisk
         it "sends command to action method" do
           http = get_simple_httpok
           http.stub(:body => cmd_body_sip_show_peers)
-          Net::HTTP.stub(:start).and_yield(double('Net::HTTP', :request => http))
+          http.stub(:[]).and_return(%Q|mansession_id="#{manses_id}"; Version=1; Max-Age=60|)
+          http.stub(:set_form_data).with(anything())
+          http.stub(:use_ssl=)
+          http.stub(:request => http)
+          Net::HTTP.stub(:new => http)
           Net::HTTP::Post.stub(:new).and_return(double('Net::HTTP::Post', :set_form_data => true))
           res = subject.command 'sip show peers'
           res.data.should match(/88888\s+\(Unspecified\)/)

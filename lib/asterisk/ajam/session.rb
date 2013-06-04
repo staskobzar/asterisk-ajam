@@ -1,4 +1,4 @@
-require 'net/http'
+require 'net/https' # this will also include net/http and uri
 #
 # = asterisk/ajam/session.rb
 #
@@ -55,6 +55,7 @@ module Asterisk
         @ami_password   = options[:ami_password]
         @proxy_pass     = options[:proxy_pass]
         @proxy_user     = options[:proxy_user]
+        @use_ssl        = options[:use_ssl]
       end
 
       # login action. Also stores session identificator for 
@@ -113,12 +114,24 @@ module Asterisk
 
         # Send HTTP request to AJAM server using "#uri"
         def http_send_action
-          Net::HTTP.start(host, port) do |http|
-            req  = Net::HTTP::Post.new uri.request_uri, request_headers
-            req.set_form_data params
-            req.basic_auth @proxy_user, @proxy_pass if @proxy_pass && @proxy_user
-            Response.new http.request req
-          end
+          http = http_inst
+          req  = http_post
+          Response.new http.request req
+        end
+
+        # create new Net::HTTP instance
+        def http_inst
+          http = Net::HTTP.new(host, port)
+          http.use_ssl = @use_ssl
+          http
+        end
+
+        # create new Net::HTTP::Post instance
+        def http_post
+          req  = Net::HTTP::Post.new uri.request_uri, request_headers
+          req.set_form_data params
+          req.basic_auth @proxy_user, @proxy_pass if @proxy_pass && @proxy_user
+          req
         end
 
         # Post parameters
