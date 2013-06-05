@@ -100,7 +100,10 @@ module Asterisk
         # create new Net::HTTP instance
         def http_inst
           http = Net::HTTP.new(@uri.host, @uri.port)
-          http.use_ssl = @uri.scheme.downcase.eql? 'https'
+          if @uri.scheme.downcase.eql? 'https'
+            http.use_ssl = true
+            http.verify_mode = OpenSSL::SSL::VERIFY_NONE
+          end
           http
         end
 
@@ -140,7 +143,7 @@ module Asterisk
           raise InvalidURI,
             "No AJAM URI given" unless @uri
           raise InvalidURI,
-            "Unsupported protocol #{@uri.scheme}" unless %w/http https/.include? @uri.scheme
+            "Unsupported uri.scheme" unless %w/http https/.include? @uri.scheme
         end
 
         # initialize request headers for Net::HTTPRequest class
