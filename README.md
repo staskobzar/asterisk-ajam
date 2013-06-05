@@ -1,6 +1,7 @@
 # Asterisk::AJAM
 [![Build Status](https://travis-ci.org/staskobzar/asterisk-ajam.png?branch=master)](https://travis-ci.org/staskobzar/asterisk-ajam)
 [![Coverage Status](https://coveralls.io/repos/staskobzar/asterisk-ajam/badge.png?branch=master)](https://coveralls.io/r/staskobzar/asterisk-ajam?branch=master)
+[![Gem Version](https://badge.fury.io/rb/asterisk-ajam.png)](http://badge.fury.io/rb/asterisk-ajam)
 
 * * * 
 This is a very simple library that allows to comunicate with [Asterisk PBX](http://www.asterisk.org/) using [Asterisk Management Interface (AMI) actions](https://wiki.asterisk.org/wiki/display/AST/Asterisk+11+AMI+Actions). 
