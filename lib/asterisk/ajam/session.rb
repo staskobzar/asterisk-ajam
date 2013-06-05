@@ -69,30 +69,11 @@ module Asterisk
         action_command command: command
       end
 
-      # get or set default XML Manager Event Interface URI path
-      def path
-        @path ||= '/mxml'
-      end
-
-      # set XML Manager Event Interface URI path
-      def path=(path)
-        @path = path
-      end
-
-      # AJAM URI scheme setter
-      def scheme=(scheme)
-        @scheme = scheme
-      end
-
-      # AJAM URI scheme getter (default: http)
-      def scheme
-        @scheme ||= 'http'
-      end
-
       # Verify if session esteblished connection and set session id
       def connected?
         /^[0-9a-z]{8}$/.match(@response.session_id).is_a? MatchData
       end
+
       private
         # handling action_ methods
         def method_missing(method, *args)
@@ -138,7 +119,7 @@ module Asterisk
 
         # set AJAM POST parameters
         def set_params(params)
-          @params = params #URI.encode_www_form params
+          @params = params
         end
 
         # verifies if AMI username is set and not empty

@@ -5,16 +5,15 @@ module Asterisk
     describe Session do
       let(:uri_http){'http://ajam.asterisk.com:8088/mxml'}
       let(:manses_id){"84d22b60"}
-
-      before(:each, :mock_login => true) do
+      let(:http) do
         http = get_simple_httpok
         http.stub(:body => get_body_success_login)
-        http.stub(:[]).and_return(%Q|mansession_id="#{manses_id}"; Version=1; Max-Age=60|)
-        http.stub(:set_form_data).with(anything())
-        http.stub(:use_ssl=)
-        http.stub(:request => http)
-        Net::HTTP.stub(:new => http)
-        Net::HTTP::Post.stub(:new).and_return(double('Net::HTTP::Post', :set_form_data => true))
+        http.stub(:[]).with('Set-Cookie').and_return(%Q|mansession_id="#{manses_id}"; Version=1; Max-Age=60|)
+        http
+      end
+      subject{Session.new uri: uri_http, ami_user: 'admin', ami_password: 'passw0rd'}
+      before(:each, :logginok => true) do
+        Net::HTTP.stub(:new).and_return(double('Net::HTTP', :request => http, :use_ssl= => true))
       end
 
       describe "#new" do
@@ -38,28 +37,7 @@ module Asterisk
         end
       end
 
-      describe "#path" do
-        it "returns default path to /mxml" do
-          subject.path.should eql('/mxml')
-        end
-        it "sets new path" do
-          p = '/asterisk/mxml'
-          subject.path = p
-          subject.path.should eql(p)
-        end
-      end
-
-      describe "#scheme" do
-        it "default value is http" do
-          subject.scheme.should == 'http'
-        end
-        it "set scheme" do
-          subject.scheme = 'https'
-          subject.scheme.should == 'https'
-        end
-      end
-
-      describe "#login" do
+      describe "#login", :logginok => true do
         it "raises InvalidAMILogin if empty AMI username" do
           subject.ami_user = nil
           expect{
@@ -81,7 +59,7 @@ module Asterisk
 
       end
 
-      describe "#connected?" do
+      describe "#connected?", :logginok => true do
         it "returns true when successfuly logged in", :mock_login => true do
           subject.login
           subject.should be_connected
@@ -101,9 +79,11 @@ module Asterisk
           subject.action_dbput params
         end
 
-        it "uses cookies when sending action", :mock_login => true do
-          Net::HTTP::Post.should_receive(:new).with(anything(),hash_including("Cookie"=>%Q!mansession_id="#{manses_id}"!))
+        it "uses cookies when sending action", :logginok => true do
           subject.login
+          Net::HTTP::Post.should_receive(:new).
+            with(anything(),hash_including("Cookie"=>%Q!mansession_id="#{manses_id}"!)).
+            and_return(double('Net::HTTPResponse', :set_form_data => true))
           subject.action_corestatus
         end
       end
