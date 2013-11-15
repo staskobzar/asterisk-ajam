@@ -55,11 +55,17 @@ module Asterisk
         @data || @nodes
       end
 
+      # raw xml from command response
+      def raw_xml
+        @raw_xml
+      end
+
       private
         # Parses HTTP response body.
         # Body should by xml string. Otherwise will raise
         # exception InvalidHTTPBody
         def parse_body xml
+          @raw_xml = xml
           set_nodes xml
           verify_response
           set_eventlist
