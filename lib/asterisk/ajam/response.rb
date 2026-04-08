@@ -99,7 +99,7 @@ module Asterisk
 
       # extract mansession_id from cookies
       def set_session_id(http)
-        return unless /mansession_id=(['"])([^\1]+)\1/ =~ http['Set-Cookie']
+        return unless /mansession_id=(['"])([^'"]+)\1/ =~ http['Set-Cookie']
 
         @session_id = ::Regexp.last_match(2)
       end
