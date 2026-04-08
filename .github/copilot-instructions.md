@@ -49,7 +49,7 @@ This is a Ruby gem (`asterisk-ajam`) that communicates with the Asterisk PBX [AM
 
 - **Dynamic action methods:** `action_NAME` calls are handled via `method_missing`. Any method matching `/^action_\w+$/` is dispatched to `send_action` with the suffix as the AMI action symbol (e.g., `action_sippeers` → `send_action(:sippeers, {})`).
 - **SSL:** Enabled automatically when URI scheme is `https`. Certificate verification is intentionally disabled (`VERIFY_NONE`).
-- **Specs use RSpec stubs** (`.stub(...)` / `.should_receive(...)`) — the older RSpec 2 expectation syntax, not `expect(...).to receive(...)`.
+- **Specs use modern RSpec expectations** (`expect(...).to receive(...)`) rather than the older RSpec 2 `.stub(...)` / `.should_receive(...)` syntax.
 - **Fixture helpers** for HTTP responses are defined as top-level methods in `spec/spec_helper.rb` (e.g., `get_body_sippeers`, `cmd_body_dialplan_reload`).
 - **XML format:** AJAM responses are `<ajax-response>` documents; each `<generic>` element maps to one node. The first node is the status node (checked for `response='Success'` or `response='Follows'`); subsequent nodes form the event list.
 - Runtime dependency: `libxml-ruby` gem (used in `Response`).
