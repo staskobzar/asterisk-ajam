@@ -2,11 +2,11 @@ require 'simplecov'
 require 'coveralls'
 
 SimpleCov.formatter = SimpleCov::Formatter::MultiFormatter.new([
-  SimpleCov::Formatter::HTMLFormatter,
-  Coveralls::SimpleCov::Formatter
-])
+                                                                 SimpleCov::Formatter::HTMLFormatter,
+                                                                 Coveralls::SimpleCov::Formatter
+                                                               ])
 SimpleCov.start do
-  add_filter "spec/"
+  add_filter 'spec/'
 end
 require 'asterisk/ajam'
 
@@ -20,22 +20,22 @@ def get_http_unauth
 end
 
 def get_body_success_login
-  %q{<ajax-response>
+  "<ajax-response>
 <response type='object' id='unknown'><generic response='Success' message='Authentication accepted' /></response>
 </ajax-response>
-  }
+  "
 end
 
 def get_body_failed_login
-  %q{
+  "
 <ajax-response>
 <response type='object' id='unknown'><generic response='Error' message='Authentication failed' /></response>
 </ajax-response>
-  }
+  "
 end
 
 def get_body_sippeers
-  %q{<ajax-response>
+  "<ajax-response>
 <response type='object' id='unknown'><generic response='Success' actionid='321321321' eventlist='start' message='Peer status list will follow' /></response>
 <response type='object' id='unknown'><generic event='PeerEntry' actionid='321321321' channeltype='SIP' objectname='5555' chanobjecttype='peer' ipaddress='-none-' ipport='0' dynamic='yes' forcerport='no' videosupport='no' textsupport='no' acl='yes' status='UNKNOWN' realtimedevice='no' /></response>
 <response type='object' id='unknown'><generic event='PeerEntry' actionid='321321321' channeltype='SIP' objectname='8734' chanobjecttype='peer' ipaddress='-none-' ipport='0' dynamic='yes' forcerport='yes' videosupport='no' textsupport='no' acl='yes' status='UNKNOWN' realtimedevice='no' /></response>
@@ -47,26 +47,26 @@ def get_body_sippeers
 <response type='object' id='unknown'><generic event='PeerEntry' actionid='321321321' channeltype='SIP' objectname='8903' chanobjecttype='peer' ipaddress='-none-' ipport='0' dynamic='yes' forcerport='yes' videosupport='no' textsupport='no' acl='yes' status='UNKNOWN' realtimedevice='no' /></response>
 <response type='object' id='unknown'><generic event='PeerlistComplete' eventlist='Complete' listitems='8' actionid='321321321' /></response>
 </ajax-response>
-  }
+  "
 end
 
 def get_body_corestatus
-  %q{<ajax-response>
+  "<ajax-response>
 <response type='object' id='unknown'><generic response='Success' corestartupdate='2013-05-25' corestartuptime='17:13:00' corereloaddate='2013-05-25' corereloadtime='17:13:00' corecurrentcalls='0' /></response>
 </ajax-response>
-  }
+  "
 end
 
 def cmd_body_dialplan_reload
-  %q{<ajax-response>
+  "<ajax-response>
 <response type='object' id='unknown'><generic response='Follows' privilege='Command' opaque_data='Dialplan reloaded.
 --END COMMAND--' /></response>
 </ajax-response>
-  }
+  "
 end
 
 def cmd_body_sip_show_peers
-  %q{<ajax-response>
+  "<ajax-response>
 <response type='object' id='unknown'><generic response='Follows' privilege='Command' opaque_data='Name/username              Host                                    Dyn Forcerport ACL Port     Status
 5555                       (Unspecified)                            D              A  0        UNKNOWN
 8734                       (Unspecified)                            D   N          A  0        UNKNOWN
@@ -79,5 +79,5 @@ def cmd_body_sip_show_peers
 8 sip peers [Monitored: 0 online, 8 offline Unmonitored: 0 online, 0 offline]
 --END COMMAND--' /></response>
 </ajax-response>
-  }
+  "
 end
