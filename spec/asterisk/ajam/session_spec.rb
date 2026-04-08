@@ -18,8 +18,7 @@ module Asterisk
 
       describe "#new" do
         it "set AJAM uri" do
-          allow(URI).to receive(:parse).and_return(URI(uri_http))
-          expect(URI).to receive(:parse).with(uri_http)
+          expect(URI).to receive(:parse).with(uri_http).and_return(URI(uri_http))
           Session.new uri: uri_http
         end
 

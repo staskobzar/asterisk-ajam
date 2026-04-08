@@ -1,4 +1,8 @@
-require 'libxml-ruby'
+begin
+  require 'libxml'
+rescue LoadError
+  require 'libxml-ruby'
+end
 
 #
 # = asterisk/ajam/response.rb
