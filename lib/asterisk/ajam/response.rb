@@ -1,4 +1,8 @@
-require 'libxml'
+begin
+  require 'libxml'
+rescue LoadError
+  require 'libxml-ruby'
+end
 
 #
 # = asterisk/ajam/response.rb
@@ -9,7 +13,7 @@ module Asterisk
     class InvalidHTTPBody < StandardError;end #:nodoc:
 
     #
-    # Generic class to process and store responses from 
+    # Generic class to process and store responses from
     # Asterisk AJAM server. Stores data from HTTP response
     # and xml document received from Asterisk server
     #
@@ -27,7 +31,7 @@ module Asterisk
       # Response attributes
       attr_reader :attribute
 
-      # Creates new Response class instance. Sets instance 
+      # Creates new Response class instance. Sets instance
       # variables from HTTP Response (like code). Parses body.
       def initialize(http)
         raise ArgumentError,
@@ -79,7 +83,7 @@ module Asterisk
           @nodes = src.root.find('response/generic').to_a
         end
 
-        # 
+        #
         # Check if AJAM response is successfull and set internal variable
         # @success
         def verify_response
@@ -97,7 +101,7 @@ module Asterisk
           end
         end
 
-        # for reponses that contain eventlist of values set it to 
+        # for reponses that contain eventlist of values set it to
         # internal attributes
         def set_eventlist
           return unless @attribute['eventlist'].to_s.downcase.eql? 'start'
