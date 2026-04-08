@@ -5,29 +5,28 @@ require 'net/https' # this will also include net/http and uri
 module Asterisk
   module AJAM
     #
-    # == Session class for Asterisk AJAM 
-    # Used to controll connection to Astersik AJAM via HTTP protocol
+    # == Session class for Asterisk AJAM
+    # Used to control connection to Asterisk AJAM via HTTP protocol
     #
-    
+
     # Session errors
     # This class extends StandardError and raises when problem with
     # AJAM URL found, for ex: missing scheme or hostname
     # TODO: should be also used for HTTPS connections
-    class InvalidURI < StandardError; end #:nodoc:
+    class InvalidURI < StandardError; end # :nodoc:
 
     # This class extends StandardError and raises when problems
-    # with loggin AJAM server found or when missing importent
+    # with logging AJAM server found or when missing important
     # parameters like username or password.
-    class InvalidAMILogin < StandardError; end #:nodoc:
+    class InvalidAMILogin < StandardError; end # :nodoc:
 
     # Class extends StandardError and is raised when trying to
     # send command to not AJAM server where not logged in
-    class NotLoggedIn < StandardError; end #:nodoc:
+    class NotLoggedIn < StandardError; end # :nodoc:
 
     # This class establish connection to AJAM server using TCP connection
-    # and HTTP protocol. 
+    # and HTTP protocol.
     class Session
-
       # Asterisk AJAM server URI
       # URI class instance
       attr_accessor :uri
@@ -44,9 +43,9 @@ module Asterisk
       # http access password
       attr_accessor :proxy_pass
 
-      # Create new Asterisk AJAM session without initializing 
+      # Create new Asterisk AJAM session without initializing
       # TCP network connection
-      def initialize(options={})
+      def initialize(options = {})
         self.uri        = options[:uri]
         @ami_user       = options[:ami_user]
         @ami_password   = options[:ami_password]
@@ -55,7 +54,7 @@ module Asterisk
         @use_ssl        = options[:use_ssl]
       end
 
-      # login action. Also stores session identificator for 
+      # login action. Also stores session identifier for
       # sending many actions within same session
       def login
         ami_user_valid?
@@ -69,90 +68,101 @@ module Asterisk
         action_command command: command
       end
 
-      # Verify if session esteblished connection and set session id
+      # Verify if session established connection and set session id
       def connected?
         /^[0-9a-z]{8}$/.match(@response.session_id).is_a? MatchData
       end
 
       private
-        # handling action_ methods
-        def method_missing(method, *args)
-          method = method.id2name
+
+      # handling action_ methods
+      def method_missing(method, *args)
+        method = method.id2name
+        unless /^action_\w+$/.match(method)
           raise NoMethodError,
-            "Undefined method #{method}" unless /^action_\w+$/.match(method)
-          raise NotLoggedIn, "Not logged in" unless connected?
-          send_action method.sub(/^action_/,'').to_sym, *args
+                "Undefined method #{method}"
         end
+        raise NotLoggedIn, 'Not logged in' unless connected?
 
-        # send action to Asterisk AJAM server
-        def send_action(action, params={})
-          set_params Hash[action: action].merge params
-          @response = http_send_action
+        send_action method.sub(/^action_/, '').to_sym, *args
+      end
+
+      # send action to Asterisk AJAM server
+      def send_action(action, params = {})
+        set_params Hash[action: action].merge params
+        @response = http_send_action
+      end
+
+      # Send HTTP request to AJAM server using "#uri"
+      def http_send_action
+        http = http_inst
+        req  = http_post
+        Response.new http.request req
+      end
+
+      # create new Net::HTTP instance
+      def http_inst
+        http = Net::HTTP.new(@uri.host, @uri.port)
+        if @uri.scheme.downcase.eql? 'https'
+          http.use_ssl = true
+          http.verify_mode = OpenSSL::SSL::VERIFY_NONE
         end
+        http
+      end
 
-        # Send HTTP request to AJAM server using "#uri"
-        def http_send_action
-          http = http_inst
-          req  = http_post
-          Response.new http.request req
-        end
+      # create new Net::HTTP::Post instance
+      def http_post
+        req = Net::HTTP::Post.new @uri.request_uri, request_headers
+        req.set_form_data params
+        req.basic_auth @proxy_user, @proxy_pass if @proxy_pass && @proxy_user
+        req
+      end
 
-        # create new Net::HTTP instance
-        def http_inst
-          http = Net::HTTP.new(@uri.host, @uri.port)
-          if @uri.scheme.downcase.eql? 'https'
-            http.use_ssl = true
-            http.verify_mode = OpenSSL::SSL::VERIFY_NONE
-          end
-          http
-        end
+      # Post parameters
+      attr_reader :params
 
-        # create new Net::HTTP::Post instance
-        def http_post
-          req  = Net::HTTP::Post.new @uri.request_uri, request_headers
-          req.set_form_data params
-          req.basic_auth @proxy_user, @proxy_pass if @proxy_pass && @proxy_user
-          req
-        end
+      # set AJAM POST parameters
+      def set_params(params)
+        @params = params
+      end
 
-        # Post parameters
-        def params
-          @params
-        end
+      # verifies if AMI username is set and not empty
+      def ami_user_valid?
+        return unless @ami_user.to_s.empty?
 
-        # set AJAM POST parameters
-        def set_params(params)
-          @params = params
-        end
+        raise InvalidAMILogin,
+              'Missing AMI username'
+      end
 
-        # verifies if AMI username is set and not empty
-        def ami_user_valid?
-          raise InvalidAMILogin,
-            "Missing AMI username" if @ami_user.to_s.empty?
-        end
+      # verifies if AMI password (secret) is set and not empty
+      def ami_pass_valid?
+        return unless @ami_password.to_s.empty?
 
-        # verifies if AMI password (secret) is set and not empty
-        def ami_pass_valid?
-          raise InvalidAMILogin,
-            "Missing AMI user pass" if @ami_password.to_s.empty?
-        end
+        raise InvalidAMILogin,
+              'Missing AMI user pass'
+      end
 
-        # setup AJAM URI
-        def uri=(uri)
-          @uri = URI.parse uri
+      # setup AJAM URI
+      def uri=(uri)
+        @uri = URI.parse uri
+        unless @uri
           raise InvalidURI,
-            "No AJAM URI given" unless @uri
-          raise InvalidURI,
-            "Unsupported uri.scheme" unless %w/http https/.include? @uri.scheme
+                'No AJAM URI given'
         end
+        return if %w[http https].include? @uri.scheme
 
-        # initialize request headers for Net::HTTPRequest class
-        def request_headers
-          return nil unless @response
-          Hash[
-            'Cookie' => %Q!mansession_id="#{@response.session_id}"!
-          ]
-        end
+        raise InvalidURI,
+              'Unsupported uri.scheme'
+      end
+
+      # initialize request headers for Net::HTTPRequest class
+      def request_headers
+        return nil unless @response
+
+        Hash[
+          'Cookie' => %(mansession_id="#{@response.session_id}")
+        ]
+      end
     end
   end
 end
