@@ -35,7 +35,7 @@ module Asterisk
       def initialize(http)
         unless http.is_a?(Net::HTTPResponse)
           raise ArgumentError,
-                "Expected Net::HTTP::Response. Got #{http.class}"
+                "Expected Net::HTTPResponse. Got #{http.class}"
         end
         @attribute = []
         @list = []
