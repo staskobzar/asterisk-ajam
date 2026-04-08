@@ -12,6 +12,8 @@ Gem::Specification.new do |spec|
   spec.homepage      = 'https://github.com/staskobzar/asterisk-ajam'
   spec.license       = 'MIT'
 
+  spec.required_ruby_version = '>= 3.2.0'
+
   spec.files         = `git ls-files`.split($/)
   spec.test_files    = spec.files.grep(%r{^(test|spec|features)/})
   spec.require_paths = ['lib']
